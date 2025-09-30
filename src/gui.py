@@ -2,8 +2,8 @@ import pathlib
 import tkinter as tk
 import tkinter.font as tkFont
 from tkinter import filedialog, messagebox
-from pdf_upload_manager import PDFUploadManager
-from pdf_merge_logic import PDFMerger
+from .pdf_upload_manager import PDFUploadManager
+from .pdf_merge_logic import PDFMerger
 
 
 class PDFMergerApp:
@@ -18,12 +18,13 @@ class PDFMergerApp:
         # Make window resizable
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
-        
+
         screen_width: int = self.root.winfo_screenwidth()
         screen_height: int = self.root.winfo_screenheight()
-        app_width, app_height = int(screen_width * 0.5), int(screen_height * 0.5)
+        app_width, app_height = int(
+            screen_width * 0.5), int(screen_height * 0.5)
         self.root.geometry(f"{app_width}x{app_height}")
-        self.font: tkFont.Font =  tkFont.Font(family="Arial", size=14)
+        self.font: tkFont.Font = tkFont.Font(family="Arial", size=14)
 
         self.is_dark_mode = False
 
@@ -32,7 +33,7 @@ class PDFMergerApp:
 
         # Drag-and-drop data
         self.drag_data = {"widget": None, "index": None}
-        
+
         self.pdf_upload_manager = PDFUploadManager()
 
         # Apply default theme
@@ -79,16 +80,17 @@ class PDFMergerApp:
                 "Insufficient PDF Files", "Please upload at least two PDFs.")
             return
 
-        save_path = filedialog.asksaveasfilename(
+        output_file_path = filedialog.asksaveasfilename(
             title="Save merged PDF",
             defaultextension=".pdf",
             filetypes=[("PDF files", "*.pdf")]
         )
-        if save_path:
+
+        if output_file_path:
             try:
                 merger = PDFMerger(self.pdf_upload_manager.get_ordered_files())
-                merger.merge(pathlib.Path(save_path).parent,
-                             pathlib.Path(save_path).name)
+
+                merger.merge(pathlib.Path(output_file_path))
                 messagebox.showinfo("Success", "PDFs merged successfully!")
                 self.listbox.delete(0, tk.END)
                 self.pdf_upload_manager.pdf_files.clear()
@@ -186,7 +188,7 @@ class PDFMergerApp:
                           activebackground="#666666", activeforeground="#FFFFFF")
 
     def __refresh_listbox(self) -> None:
-        """Refresh the listbox display to match upload_manager.pdf_files with zebra striping."""
+        """Refresh the listbox display to show the uploaded pdf files."""
         self.listbox.delete(0, tk.END)
         for idx, pdf in enumerate(self.pdf_upload_manager.pdf_files):
             self.listbox.insert(tk.END, pdf.name)
@@ -201,7 +203,7 @@ class PDFMergerApp:
                     self.listbox.itemconfig(idx, background="#888888")
 
     def __on_drag_start(self, event) -> None:
-        """Remember the item being dragged."""
+        """Remembers the item being dragged."""
         widget = event.widget
         index = widget.nearest(event.y)
         if index >= 0:
@@ -216,7 +218,7 @@ class PDFMergerApp:
             widget.selection_set(widget.nearest(event.y))
 
     def __on_drag_release(self, event) -> None:
-        """Reorder listbox + backend list when dropped."""
+        """Reorders listbox and the backend list when releasing the dragged PDF."""
         widget = self.drag_data["widget"]
         if widget:
             from_index = self.drag_data["index"]

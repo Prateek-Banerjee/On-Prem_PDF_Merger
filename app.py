@@ -1,10 +1,12 @@
+import pathlib
 import tkinter as tk
-from gui import PDFMergerApp
+from src.gui import PDFMergerApp
 
 
 def main():
     root = tk.Tk()
-    root.iconbitmap("App_Icon.ico")
+    icon_path = pathlib.Path.cwd().joinpath("App_Icon.ico")
+    root.iconbitmap(icon_path)
     PDFMergerApp(root)
     root.mainloop()
 
