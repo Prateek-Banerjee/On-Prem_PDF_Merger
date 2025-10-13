@@ -1,5 +1,5 @@
 import pathlib
-import tkinter as tk
+from tkinterdnd2 import TkinterDnD as tk
 from src.gui import PDFMergerApp
 
 

@@ -3,6 +3,7 @@ import tkinter as tk
 import tkinter.font as tkFont
 from tkinter import filedialog, messagebox
 from tkinter import ttk
+from tkinterdnd2 import DND_FILES, TkinterDnD
 from .pdf_upload_manager import PDFUploadManager
 from .pdf_merge_logic import PDFMerger
 
@@ -56,6 +57,9 @@ class PDFMergerApp:
         self.listbox.bind("<Button-1>", self.__on_drag_start)
         self.listbox.bind("<B1-Motion>", self.__on_drag_motion)
         self.listbox.bind("<ButtonRelease-1>", self.__on_drag_release)
+
+        self.listbox.drop_target_register(DND_FILES)
+        self.listbox.dnd_bind("<<Drop>>", self.__on_files_dropped)
 
     def upload_files(self):
         """Open file dialog to select PDFs and add them to the list."""
@@ -233,3 +237,39 @@ class PDFMergerApp:
                 self.__refresh_listbox()
                 widget.selection_set(to_index)
         self.drag_data = {"widget": None, "index": None}
+
+    def __on_files_dropped(self, event):
+        """Handle file paths dropped from the OS onto the listbox."""
+        data = event.data
+        paths = self.__parse_dnd_paths(data)
+        if not paths:
+            return
+        try:
+            pdfs = [pathlib.Path(p) for p in paths]
+            self.pdf_upload_manager.add_files(pdfs)
+            self.__refresh_listbox()
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+
+    def __parse_dnd_paths(self, data: str):
+        """Parse the DnD string into a list of file paths (handling braces/spaces)."""
+        parts = []
+        cur = ""
+        in_brace = False
+        for ch in data:
+            if ch == "{":
+                in_brace = True
+                cur = ""
+            elif ch == "}":
+                in_brace = False
+                parts.append(cur)
+                cur = ""
+            elif ch == " " and not in_brace:
+                if cur:
+                    parts.append(cur)
+                    cur = ""
+            else:
+                cur += ch
+        if cur:
+            parts.append(cur)
+        return [p for p in parts if p]
